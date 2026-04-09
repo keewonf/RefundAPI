@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { AppError } from "@/utils/AppError";
+import { UserRole } from "@/generated/prisma/client";
 
-function verifyUserAuthorization(role: string[]) {
+function verifyUserAuthorization(role: UserRole[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
 
@@ -9,7 +10,7 @@ function verifyUserAuthorization(role: string[]) {
       throw new AppError("Unauthorized", 401);
     }
 
-    return next;
+    return next();
   };
 }
 
