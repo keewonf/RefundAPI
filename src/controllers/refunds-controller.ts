@@ -1,11 +1,73 @@
 import { Request, Response } from "express";
 import { z } from "zod";
-import { AppError } from "@/utils/AppError";
 import { prisma } from "@/database/prisma";
+import { AppError } from "@/utils/AppError";
+import { Category } from "@/generated/prisma/client";
+
+const bodySchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, { message: "Name must be at least 1 characters long" }),
+  amount: z.number().positive({ message: "Value must be a positive number" }),
+  category: z.enum(Category),
+  filename: z.string().trim().min(20),
+});
+
+const querySchema = z.object({
+  name: z.string().optional().default(""),
+});
 
 class RefundsController {
   async create(req: Request, res: Response) {
-    res.json({ message: "ok" });
+    const { name, amount, category, filename } = bodySchema.parse(req.body);
+
+    if (!req.user?.id) {
+      throw new AppError("Unauthorized", 401);
+    }
+
+    const userExists = await prisma.user.findUnique({
+      where: { id: req.user.id },
+    });
+
+    if (!userExists) {
+      throw new AppError("User not found");
+    }
+
+    const refund = await prisma.refunds.create({
+      data: {
+        name,
+        category,
+        amount,
+        filename,
+        userId: req.user.id,
+      },
+    });
+
+    res.status(201).json(refund);
+  }
+
+  async index(req: Request, res: Response) {
+    const { name } = querySchema.parse(req.query);
+
+    const refunds = await prisma.refunds.findMany({
+      include: {
+        user: {
+          select: { name: true, email: true },
+        },
+      },
+      where: {
+        user: {
+          name: {
+            contains: name.trim(),
+            mode: "insensitive",
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return res.json(refunds);
   }
 }
 
