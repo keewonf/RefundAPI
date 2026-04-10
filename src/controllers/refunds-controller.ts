@@ -14,6 +14,10 @@ const bodySchema = z.object({
   filename: z.string().trim().min(20),
 });
 
+const paramsSchema = z.object({
+  id: z.uuid(),
+});
+
 const querySchema = z.object({
   name: z.string().optional().default(""),
   page: z.coerce.number().optional().default(1),
@@ -95,6 +99,24 @@ class RefundsController {
         totalPages: totalPages > 0 ? totalPages : 1,
       },
     });
+  }
+
+  async show(req: Request, res: Response) {
+    const { id } = paramsSchema.parse(req.params);
+
+    const refund = await prisma.refunds.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    res.json(refund);
   }
 }
 
