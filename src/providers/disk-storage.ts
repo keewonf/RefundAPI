@@ -1,39 +1,40 @@
-import fs from "node:fs"
-import path from "node:path"
+import fs from "node:fs";
+import path from "node:path";
 
-import uploadConfig from "@/configs/upload"
+import uploadConfig from "@/configs/upload";
 
 class DiskStorage {
-async saveFile(file: string){
-  const tmpPath = path.resolve(uploadConfig.TMP_FOLDER, file)
-  const destPath = path.resolve(uploadConfig.UPLOADS_FOLTER, file)
+  async saveFile(file: string) {
+    const tmpPath = path.resolve(uploadConfig.TMP_FOLDER, file);
+    const destPath = path.resolve(uploadConfig.UPLOADS_FOLDER, file);
 
-  try {
-    await fs.promises.access(tmpPath)
-  } catch (error) {
-    console.log(error)
-    throw new Error("File not found " + tmpPath)
+    try {
+      await fs.promises.access(tmpPath);
+    } catch (error) {
+      console.log(error);
+      throw new Error("File not found " + tmpPath);
+    }
+
+    await fs.promises.mkdir(uploadConfig.UPLOADS_FOLDER, { recursive: true });
+    await fs.promises.rename(tmpPath, destPath);
+
+    return file;
   }
 
-  await fs.promises.mkdir(uploadConfig.UPLOADS_FOLTER, {recursive: true})
-  await fs.promises.rename(tmpPath, destPath)
+  async deleteFile(file: string, type: "tmp" | "upload") {
+    const pathFile =
+      type === "tmp" ? uploadConfig.TMP_FOLDER : uploadConfig.UPLOADS_FOLDER;
 
-  return file
-}
+    const filePath = path.resolve(pathFile, file);
 
-async deleteFile(file:string, type: "tmp" | "upload"){
-  const pathFile = type === "tmp" ? uploadConfig.TMP_FOLDER : uploadConfig.UPLOADS_FOLTER
+    try {
+      await fs.promises.stat(filePath);
+    } catch {
+      return;
+    }
 
-  const filePath = path.resolve(pathFile, file)
-  
-  try {
-    await fs.promises.stat(filePath)
-  } catch  {
-    return
+    await fs.promises.unlink(filePath);
   }
-
-  await fs.promises.unlink(filePath)
-}
 }
 
-export { DiskStorage }
+export { DiskStorage };
