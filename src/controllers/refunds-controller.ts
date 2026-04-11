@@ -28,12 +28,22 @@ const querySchema = z.object({
 
 class RefundsController {
   async create(req: Request, res: Response) {
-    const { name, amount, category } = bodySchema.parse(req.body);
     const diskStorage = new DiskStorage();
-
     if (!req.file) {
       throw new AppError("Receipt file is required");
     }
+
+    const parsedBody = bodySchema.safeParse(req.body);
+
+    if (!parsedBody.success) {
+      await diskStorage.deleteFile(req.file.filename, "tmp");
+      throw new AppError(
+        parsedBody.error.issues[0]?.message ?? "Invalid request body",
+        400,
+      );
+    }
+
+    const { name, amount, category } = parsedBody.data;
 
     if (!req.user?.id) {
       await diskStorage.deleteFile(req.file.filename, "tmp");
