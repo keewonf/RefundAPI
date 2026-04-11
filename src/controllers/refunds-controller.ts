@@ -3,15 +3,17 @@ import { z } from "zod";
 import { prisma } from "@/database/prisma";
 import { AppError } from "@/utils/AppError";
 import { Category } from "@/generated/prisma/client";
+import { DiskStorage } from "@/providers/disk-storage";
 
 const bodySchema = z.object({
   name: z
     .string()
     .trim()
     .min(1, { message: "Name must be at least 1 characters long" }),
-  amount: z.number().positive({ message: "Value must be a positive number" }),
+  amount: z.coerce
+    .number()
+    .positive({ message: "Value must be a positive number" }),
   category: z.enum(Category),
-  filename: z.string().trim().min(20),
 });
 
 const paramsSchema = z.object({
@@ -26,9 +28,15 @@ const querySchema = z.object({
 
 class RefundsController {
   async create(req: Request, res: Response) {
-    const { name, amount, category, filename } = bodySchema.parse(req.body);
+    const { name, amount, category } = bodySchema.parse(req.body);
+    const diskStorage = new DiskStorage();
+
+    if (!req.file) {
+      throw new AppError("Receipt file is required");
+    }
 
     if (!req.user?.id) {
+      await diskStorage.deleteFile(req.file.filename, "tmp");
       throw new AppError("Unauthorized", 401);
     }
 
@@ -37,15 +45,19 @@ class RefundsController {
     });
 
     if (!userExists) {
+      await diskStorage.deleteFile(req.file.filename, "tmp");
       throw new AppError("User not found");
     }
+
+    const fileKey = await diskStorage.saveFile(req.file.filename);
 
     const refund = await prisma.refunds.create({
       data: {
         name,
         category,
         amount,
-        filename,
+        fileKey,
+        originalFilename: req.file.originalname,
         userId: req.user.id,
       },
     });
