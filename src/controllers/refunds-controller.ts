@@ -1,9 +1,8 @@
-import { Request, Response } from "express";
-import { z } from "zod";
-import { prisma } from "@/database/prisma";
 import { AppError } from "@/utils/AppError";
+import { Request, Response } from "express";
+import { prisma } from "@/database/prisma";
+import { z } from "zod";
 import { Category } from "@/generated/prisma/client";
-import { DiskStorage } from "@/providers/disk-storage";
 
 const bodySchema = z.object({
   name: z
@@ -14,6 +13,7 @@ const bodySchema = z.object({
     .number()
     .positive({ message: "Value must be a positive number" }),
   category: z.enum(Category),
+  filename: z.string().min(1, { message: "Filename is required" }),
 });
 
 const paramsSchema = z.object({
@@ -28,25 +28,18 @@ const querySchema = z.object({
 
 class RefundsController {
   async create(req: Request, res: Response) {
-    const diskStorage = new DiskStorage();
-    if (!req.file) {
-      throw new AppError("Receipt file is required");
-    }
-
     const parsedBody = bodySchema.safeParse(req.body);
 
     if (!parsedBody.success) {
-      await diskStorage.deleteFile(req.file.filename, "tmp");
       throw new AppError(
         parsedBody.error.issues[0]?.message ?? "Invalid request body",
         400,
       );
     }
 
-    const { name, amount, category } = parsedBody.data;
+    const { name, amount, category, filename } = parsedBody.data;
 
     if (!req.user?.id) {
-      await diskStorage.deleteFile(req.file.filename, "tmp");
       throw new AppError("Unauthorized", 401);
     }
 
@@ -55,19 +48,16 @@ class RefundsController {
     });
 
     if (!userExists) {
-      await diskStorage.deleteFile(req.file.filename, "tmp");
       throw new AppError("User not found");
     }
-
-    const fileKey = await diskStorage.saveFile(req.file.filename);
 
     const refund = await prisma.refunds.create({
       data: {
         name,
         category,
         amount,
-        fileKey,
-        originalFilename: req.file.originalname,
+        fileKey: filename,
+        originalFilename: filename,
         userId: req.user.id,
       },
     });
