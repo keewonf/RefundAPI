@@ -23,7 +23,7 @@ class UploadsController {
       }
       const filename = await diskStorage.saveFile(file.filename);
 
-      res.json({ file });
+      res.json({ filename });
     } catch (error) {
       if (error instanceof ZodError) {
         if (req.file) {
