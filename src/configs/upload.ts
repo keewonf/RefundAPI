@@ -8,7 +8,7 @@ const UPLOADS_FOLDER = path.resolve(TMP_FOLDER, "uploads");
 
 const MAX_SIZE = 5;
 const MAX_FILE_SIZE = 1024 * 1024 * MAX_SIZE; // 5MB
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "application/pdf"];
 
 const MULTER = {
   storage: multer.diskStorage({
