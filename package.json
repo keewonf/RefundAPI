@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "tsx --watch --env-file .env src/server.ts",
     "postinstall": "prisma generate",
-    "build": "tsc",
-    "start": "node dist/server.js"
+    "build": "tsup src/server.ts --out-dir build",
+    "start": "node build/server.js"
   },
   "author": "Lucas Moura",
   "license": "ISC",
@@ -37,6 +37,7 @@
     "ts-jest": "^29.4.9",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
+    "tsup": "^8.5.1",
     "typescript": "^6.0.2"
   }
 }
