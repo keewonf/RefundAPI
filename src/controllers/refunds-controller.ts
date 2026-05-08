@@ -2,7 +2,7 @@ import { AppError } from "@/utils/AppError";
 import { Request, Response } from "express";
 import { prisma } from "@/database/prisma";
 import { z } from "zod";
-import { Category } from "@/generated/prisma/client";
+import { Category } from "@prisma/client";
 
 const bodySchema = z.object({
   name: z

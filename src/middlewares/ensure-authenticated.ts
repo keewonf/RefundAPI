@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { verify } from "jsonwebtoken";
 import { authConfig } from "@/configs/auth";
 import { AppError } from "@/utils/AppError";
-import { UserRole } from "@/generated/prisma/client";
+import { UserRole } from "@prisma/client";
 
 interface TokenPayload {
   role: UserRole;

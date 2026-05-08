@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { UserRole } from "@/generated/prisma/client";
+import { UserRole } from "@prisma/client";
 import { z } from "zod";
 import { hash } from "bcrypt";
 import { AppError } from "@/utils/AppError";
