@@ -6,8 +6,8 @@ import { Request } from "express";
 const TMP_FOLDER = path.resolve(__dirname, "..", "..", "tmp");
 const UPLOADS_FOLDER = path.resolve(TMP_FOLDER, "uploads");
 
-const MAX_SIZE = 3;
-const MAX_FILE_SIZE = 1024 * 1024 * MAX_SIZE; // 3MB
+const MAX_SIZE = 5;
+const MAX_FILE_SIZE = 1024 * 1024 * MAX_SIZE; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
 
 const MULTER = {
