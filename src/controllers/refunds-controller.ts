@@ -128,7 +128,12 @@ class RefundsController {
       },
     });
 
-    res.json(refund);
+    const { fileKey, ...refundData } = refund ?? {};
+
+    res.json({
+      ...refundData,
+      filename: fileKey,
+    });
   }
 }
 
